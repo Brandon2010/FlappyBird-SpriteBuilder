@@ -10,6 +10,12 @@
 #import "Obstacle.h"
 
 @implementation MainScene {
+    CGPoint _cloudParaxllaxRatio;
+    CGPoint _bushParaxllaxRatio;
+    
+    CCNode *_paraxllaxContainer;
+    CCParallaxNode *paraxllaxBackground;
+    
     CCNode *_ground1;
     CCNode *_ground2;
     NSArray *_grounds;
@@ -40,8 +46,8 @@
     self.userInteractionEnabled = TRUE;
     
     _grounds = @[_ground1, _ground2];
-    //_clouds = @[_cloud1, _cloud2];
-    //_bushs = @[_bush1, _bush2];
+    _clouds = @[_cloud1, _cloud2];
+    _bushs = @[_bush1, _bush2];
     
     for (CCNode *ground in _grounds) {
         // set collision txpe
@@ -154,7 +160,7 @@
         }
     }
     
-    /*// move and loop the bushes
+    // move and loop the bushes
     for (CCNode *bush in _bushs) {
         // move the bush
         bush.position = ccp(bush.position.x - (character.physicsBody.velocity.x * delta), bush.position.y);
@@ -179,7 +185,7 @@
             cloud.position = ccp(cloud.position.x +
                                  2 * cloud.contentSize.width, cloud.position.y);
         }
-    }*/
+    }
     
     NSMutableArray *offScreenObstacles = nil;
     
