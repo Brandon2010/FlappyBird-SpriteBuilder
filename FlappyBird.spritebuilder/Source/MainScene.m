@@ -9,12 +9,25 @@
 #import "MainScene.h"
 #import "Obstacle.h"
 
+@interface CGPointObject : NSObject
+{
+    CGPoint _ratio;
+    CGPoint _offset;
+    CCNode *__unsafe_unretained _child; // weak ref
+}
+@property (nonatomic, readwrite) CGPoint ratio;
+@property (nonatomic, readwrite) CGPoint offset;
+@property (nonatomic, readwrite, unsafe_unretained) CCNode *child;
++(id) pointWithCGPoint: (CGPoint)point offset: (CGPoint) offset;
+-(id) initWithCGPoint: (CGPoint)point offset: (CGPoint) offset;
+@end
+
 @implementation MainScene {
     CGPoint _cloudParaxllaxRatio;
     CGPoint _bushParaxllaxRatio;
     
-    CCNode *_paraxllaxContainer;
-    CCParallaxNode *paraxllaxBackground;
+    CCNode *_parallaxContainer;
+    CCParallaxNode *_parallaxBackground;
     
     CCNode *_ground1;
     CCNode *_ground2;
@@ -26,7 +39,7 @@
     
     CCNode *_bush1;
     CCNode *_bush2;
-    NSArray *_bushs;
+    NSArray *_bushes;
     
     NSTimeInterval _sinceTouch;
     
@@ -47,7 +60,26 @@
     
     _grounds = @[_ground1, _ground2];
     _clouds = @[_cloud1, _cloud2];
-    _bushs = @[_bush1, _bush2];
+    _bushes = @[_bush1, _bush2];
+    
+    _parallaxContainer = [CCParallaxNode node];
+    [_parallaxContainer addChild:_parallaxBackground];
+    
+    // Note that the bush ratio is larger than the cloud
+    _bushParaxllaxRatio = ccp(0.9, 1);
+    _cloudParaxllaxRatio = ccp(0.5, 1);
+    
+    for (CCNode *bush in _bushes) {
+        CGPoint offset = bush.position;
+        [self removeChild:bush];
+        [_parallaxBackground addChild:bush z:0 parallaxRatio:_bushParaxllaxRatio positionOffset:offset];
+    }
+    
+    for (CCNode *cloud in _clouds) {
+        CGPoint offset = cloud.position;
+        [self removeChild:cloud];
+        [_parallaxBackground addChild:cloud z:0 parallaxRatio:_cloudParaxllaxRatio positionOffset:offset];
+    }
     
     for (CCNode *ground in _grounds) {
         // set collision txpe
@@ -160,7 +192,7 @@
         }
     }
     
-    // move and loop the bushes
+    /*// move and loop the bushes
     for (CCNode *bush in _bushs) {
         // move the bush
         bush.position = ccp(bush.position.x - (character.physicsBody.velocity.x * delta), bush.position.y);
@@ -184,6 +216,24 @@
         if (cloud.position.x <= (-1 * cloud.contentSize.width)) {
             cloud.position = ccp(cloud.position.x +
                                  2 * cloud.contentSize.width, cloud.position.y);
+        }
+    }*/
+    
+    // loop the bushes
+    for (CCNode *bush in _bushes) {
+        // get the world position of the bush
+        CGPoint bushWorldPosition = [_parallaxBackground convertToWorldSpace:bush.position];
+        // get the screen position of the bush
+        CGPoint bushScreenPosition = [self convertToNodeSpace:bushWorldPosition];
+        
+        // if the left corner is one complete width off the screen,
+        // move it to the right
+        if (bushScreenPosition.x <= (-1 * bush.contentSize.width)) {
+            for (CGPointObject *child in _parallaxBackground.parallaxArray) {
+                if (child.child == bush) {
+                    child.offset = ccp(child.offset.x + 2*bush.contentSize.width, child.offset.y);
+                }
+            }
         }
     }
     
